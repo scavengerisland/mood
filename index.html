@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXTREME MOOD ELEVATOR 3000</title>
+    <style>
+        body {
+            font-family: 'Impact', fantasy;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            background-image: linear-gradient(45deg, #ff00cc, #3333ff);
+            perspective: 1000px;
+            /* Reduced animation intensity for accessibility */
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(5px, 5px) rotate(5deg); }
+            50% { transform: translate(0, -5px) rotate(-5deg); }
+            75% { transform: translate(-5px, 5px) rotate(5deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        video {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -1000;
+            visibility: hidden;
+            filter: hue-rotate(0deg);
+            transition: filter 0.5s ease;
+        }
+
+        #mood-container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.3), 0 0 40px rgba(255, 0, 0, 0.8) inset;
+            z-index: 1;
+            position: relative;
+            max-width: 90%;
+            max-height: 90vh;
+            transform-style: preserve-3d;
+            transition: all 0.5s ease;
+            overflow: hidden;
+            animation: pulse 2s infinite;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 0px rgba(255, 0, 0, 0.5);
+            letter-spacing: 2px;
+            position: relative;
+            color: #ff0000;
+            text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 0, 0, 0.8);
+        }
+
+        h1::after {
+            content: "💥";
+            position: absolute;
+            top: -10px;
+            right: -40px;
+            font-size: 32px;
+            animation: pulse 1s infinite;
+        }
+
+        .extreme-mode h1 {
+            color: #ff0000;
+            text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 0, 0, 0.8);
+        }
+
+        #moods-and-slider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            max-height: 80vh;
+            overflow: visible;
+        }
+
+        #mood-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            text-align: right;
+            transition: all 0.3s ease;
+            max-height: 50vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0,0,0,0.3) transparent;
+        }
+        
+        #mood-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #mood-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        #mood-list::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 6px;
+        }
+
+        #mood-list li {
+            margin-bottom: 6px;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            padding: 4px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        #mood-list li.active {
+            transform: scale(1.2);
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #mood-list li:hover {
+            transform: scale(1.1);
+        }
+
+        .extreme-mode #mood-list li.active {
+            background-color: rgba(255, 0, 0, 0.8);
+            color: white;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+        }
+
+        #mood-slider-container {
+            position: relative;
+            height: 50vh;
+            display: flex;
+            align-items: center;
+        }
+
+        #mood-slider {
+            -webkit-appearance: slider-vertical;
+            writing-mode: bt-lr;
+            width: 30px;
+            height: 50vh;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to top, #ff0000, #0000ff);
+            border-radius: 15px;
+            outline: none;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        #mood-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 40px;
+            height: 40px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"><path fill="white" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-8c.83 0 1.5-.67 1.5-1.5S7.83 9 7 9s-1.5.67-1.5 1.5S6.17 12 7 12zm8-1.5c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5.67 1.5 1.5 1.5 1.5-.67 1.5-1.5zM9 16h6c-.28 1.19-1.29 2-2.41 2s-2.13-.81-2.59-2z"/></svg>');
+            border-radius: 50%;
+            cursor: grab;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #mood-slider::-moz-range-thumb {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            cursor: grab;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .extreme-mode #mood-slider {
+            opacity: 1;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+        }
+
+        #emoji-indicator {
+            font-size: 60px;
+            margin: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        #toggle-extreme {
+            position: absolute;
+            bottom: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 0 #990000;
+        }
+
+        #toggle-extreme:hover {
+            background-color: #cc0000;
+            transform: translateX(-50%) scale(1.1);
+        }
+
+        #toggle-extreme:active {
+            box-shadow: 0 2px 0 #990000;
+            transform: translateX(-50%) translateY(3px) scale(1.1);
+        }
+
+        /* EXTREME INTENSITY HELL MODE */
+        .hellmode {
+            animation: shake 0.2s infinite;
+            filter: saturate(300%) contrast(150%);
+            background-color: #000 !important;
+        }
+        
+        @keyframes flicker {
+            0% { opacity: 1; }
+            5% { opacity: 0.2; }
+            10% { opacity: 0.9; }
+            15% { opacity: 1; }
+            20% { opacity: 0.5; }
+            25% { opacity: 0.7; }
+            30% { opacity: 1; }
+            35% { opacity: 0.2; }
+            40% { opacity: 0.8; }
+            45% { opacity: 1; }
+            50% { opacity: 0.9; }
+            55% { opacity: 0.4; }
+            60% { opacity: 0.7; }
+            65% { opacity: 1; }
+            70% { opacity: 0.5; }
+            75% { opacity: 0.8; }
+            80% { opacity: 1; }
+            85% { opacity: 0.2; }
+            90% { opacity: 0.9; }
+            95% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+        
+        .hellmode #mood-container {
+            animation: shake 0.5s infinite, flicker 4s infinite;
+            background-color: rgba(40, 0, 0, 0.9) !important;
+        }
+        
+        .hellmode #mood-list li {
+            color: #ff9999;
+            text-shadow: 0 0 5px #ff0000;
+        }
+
+        #motivational-message {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            height: 60px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        #achievement {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 20px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #achievement span {
+            color: gold;
+            font-weight: bold;
+        }
+
+        /* Accessibility toggle */
+        #accessibility-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        /* Reduced motion class */
+        .reduced-motion {
+            animation: none !important;
+        }
+
+        .reduced-motion * {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        .reduced-motion #mood-container {
+            animation: none !important;
+        }
+
+        /* Skip link for keyboard accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #000;
+            color: white;
+            padding: 8px;
+            z-index: 100;
+            transition: top 0.3s;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+    <a href="#mood-container" class="skip-link">Skip to main content</a>
+    <button id="accessibility-toggle">Toggle Reduced Motion</button>
+    <div id="particles-js"></div>
+    <video id="fire-video" muted loop poster="fire-placeholder.jpg">
+        <source src="fire.mp4" type="video/mp4">
+        <!-- Added fallback text for when video cannot load -->
+        Your browser does not support the video tag.
+    </video>
+    <div id="achievement" role="alert" aria-live="polite">Achievement Unlocked: <span>Mood Master!</span></div>
+    <div id="mood-container" tabindex="0">
+        <h1>EXTREME MOOD ELEVATOR 3000</h1>
+        <div id="emoji-indicator" aria-live="polite" role="status">😐</div>
+        <div id="moods-and-slider">
+            <ul id="mood-list" aria-label="Mood list">
+                <!-- Mood items will go here -->
+            </ul>
+            <div id="mood-slider-container">
+                <input type="range" min="0" max="19" value="9" id="mood-slider" 
+                       aria-label="Mood slider" aria-valuemin="0" aria-valuemax="19" aria-valuenow="9" 
+                       orient="vertical" />
+            </div>
+        </div>
+        <div id="motivational-message" aria-live="polite"></div>
+        <button id="toggle-extreme" aria-pressed="false">ACTIVATE EXTREME MODE</button>
+    </div>
+
+    <script>
+        // Create audio context only on user interaction
+        let audioContext = null;
+        let clickSound = null;
+        let extremeSound = null;
+        let achievementSound = null;
+        let hellSound = null;
+        
+        function initAudio() {
+            if (audioContext) return; // Already initialized
+            
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Initialize with silent audio sources initially
+                clickSound = { play: function() {} };
+                extremeSound = { play: function() {} };
+                achievementSound = { play: function() {} };
+                hellSound = { play: function() {} };
+                
+                // Load proper sounds later if needed
+            } catch (e) {
+                console.error("Web Audio API not supported:", e);
+            }
+        }
+
+        const moods = [
+            'TRANSCENDENT 🧘‍♂️', 'ECSTATIC 🎉', 'CREATIVE GENIUS 🧠', 'UNSTOPPABLE 💪', 'CHEERFULLY OPTIMISTIC 🌞', 
+            'GRATEFUL AF 🙏', 'TOTALLY CHILL 😎', 'MILDLY AMUSED 😏', 'BASICALLY FINE 🙂', 'SLIGHTLY CURIOUS 🤔',
+            'MILDLY ANNOYED 😒', 'HANGRY 🍔', 'ANXIETY SPIRAL 😰', 'DEFENSIVE AF 🛡️', 'JUDGING YOU HARD 👀', 
+            'SELF-RIGHTEOUS RAGE 😤', 'STRESS OVERLOAD 🤯', 'ABSOLUTELY FURIOUS 🤬', 'EXISTENTIAL CRISIS 💀', 'ELDRITCH HORROR 👾'
+        ];
+
+        const motivationalMessages = [
+            "YOU'RE LITERALLY A GOD AMONG MORTALS!",
+            "NOTHING CAN STOP YOU! ABSOLUTELY NOTHING!",
+            "YOUR BRAIN IS OPERATING AT 300% CAPACITY!",
+            "YOU COULD PUNCH THROUGH A WALL RIGHT NOW!",
+            "THE WORLD IS YOUR PLAYGROUND!",
+            "COUNT YOUR BLESSINGS, THEN MULTIPLY BY 1000!",
+            "COOL AS A CUCUMBER IN A FREEZER!",
+            "THAT'S KINDA FUNNY, I GUESS?",
+            "EVERYTHING'S... FINE... TOTALLY FINE...",
+            "HUH, THAT'S INTERESTING, I THINK?",
+            "UGH, THIS IS SO ANNOYING!",
+            "FEED ME OR FACE MY WRATH!",
+            "EVERYTHING IS GOING TO GO HORRIBLY WRONG!",
+            "I'M NOT DEFENSIVE, YOU'RE DEFENSIVE!",
+            "I'M SILENTLY DISAPPROVING OF EVERYTHING!",
+            "I'M RIGHT AND EVERYONE ELSE IS WRONG!",
+            "MY BRAIN IS ON FIRE AND MY BODY IS LAVA!",
+            "I WILL DESTROY EVERYTHING IN MY PATH!",
+            "NOTHING MATTERS AND EVERYTHING IS MEANINGLESS!",
+            "THE VOID STARES BACK"
+        ];
+
+        const moodEmojis = [
+            '🧘‍♂️', '🎉', '🧠', '💪', '🌞', 
+            '🙏', '😎', '😏', '🙂', '🤔',
+            '😒', '🍔', '😰', '🛡️', '👀', 
+            '😤', '🤯', '🤬', '💀', '👾'
+        ];
+
+        // DOM Elements
+        const moodList = document.getElementById('mood-list');
+        const moodSlider = document.getElementById('mood-slider');
+        const emojiIndicator = document.getElementById('emoji-indicator');
+        const fireVideo = document.getElementById('fire-video');
+        const toggleExtremeBtn = document.getElementById('toggle-extreme');
+        const motivationalMessage = document.getElementById('motivational-message');
+        const achievement = document.getElementById('achievement');
+        const accessibilityToggle = document.getElementById('accessibility-toggle');
+
+        // Create mood list items
+        moods.forEach((mood, index) => {
+            const moodItem = document.createElement('li');
+            moodItem.innerHTML = mood;
+            moodItem.id = 'mood-' + index;
+            moodItem.setAttribute('role', 'button');
+            moodItem.setAttribute('aria-label', mood);
+            moodItem.setAttribute('tabindex', '0');
+            moodItem.addEventListener('click', function() {
+                initAudio(); // Initialize audio on user interaction
+                if (clickSound) clickSound.play();
+                moodSlider.value = moods.length - 1 - index; // Invert for slider
+                updateMood(index);
+                // Update ARIA attributes
+                moodSlider.setAttribute('aria-valuenow', moodSlider.value);
+            });
+            // Add keyboard support
+            moodItem.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    moodItem.click();
+                }
+            });
+            moodList.appendChild(moodItem);
+        });
+
+        // Set initial slider position
+        moodSlider.max = moods.length - 1;
+        moodSlider.value = moods.length - 1 - moods.indexOf('SLIGHTLY CURIOUS 🤔'); // Default position
+        moodSlider.setAttribute('aria-valuenow', moodSlider.value);
+
+        // Mood state variables
+        let secretCodeActivated = false;
+        let previousMood = 9; // Default to "SLIGHTLY CURIOUS"
+        
+        // Update mood based on slider position
+        function updateMood(moodIndex) {
+            // Update visuals
+            moods.forEach((mood, index) => {
+                const moodElem = document.getElementById('mood-' + index);
+                if (index === moodIndex) {
+                    moodElem.classList.add('active');
+                    moodElem.setAttribute('aria-selected', 'true');
+                    if (index === moods.length - 1) {
+                        moodElem.style.color = '#ff0000';
+                        moodElem.style.textShadow = '0 0 10px #ff0000';
+                    } else {
+                        moodElem.style.color = '';
+                        moodElem.style.textShadow = '';
+                    }
+                } else {
+                    moodElem.classList.remove('active');
+                    moodElem.setAttribute('aria-selected', 'false');
+                }
+            });
+
+            // Update emoji
+            emojiIndicator.textContent = moodEmojis[moodIndex];
+            
+            // Update motivational message
+            motivationalMessage.textContent = motivationalMessages[moodIndex];
+            motivationalMessage.style.opacity = 1;
+
+            // Calculate color and effects
+            const intensity = moodIndex / moods.length;
+            const red = Math.round(255 * intensity);
+            const blue = Math.round(255 * (1 - intensity));
+            
+            // Apply background color based on mood
+            if (moodIndex === moods.length - 1) {  // If the slider is at the bottom (ELDRITCH HORROR)
+                fireVideo.style.visibility = 'visible';
+                
+                // Only play video if it's loaded
+                if (fireVideo.readyState >= 3) { // HAVE_FUTURE_DATA or HAVE_ENOUGH_DATA
+                    fireVideo.play().catch(e => console.error("Video playback failed:", e));
+                }
+                
+                document.body.style.backgroundColor = '#000';
+                document.body.style.backgroundImage = 'none';
+                
+                // Always activate Hell Mode at the bottom
+                if (!secretCodeActivated) {
+                    secretCodeActivated = true;
+                    activateHellMode();
+                }
+            } else {
+                if (secretCodeActivated) {
+                    // Reset hell mode if we move away from the bottom
+                    secretCodeActivated = false;
+                    document.body.classList.remove('hellmode');
+                    fireVideo.style.filter = 'none';
+                }
+                
+                fireVideo.style.visibility = 'hidden';
+                fireVideo.pause();
+                
+                // More intense gradient in extreme mode
+                document.body.style.backgroundImage = `linear-gradient(45deg, rgb(${red}, 0, ${blue}), rgb(${blue}, 0, ${red}))`;
+                
+                // Reduced effects for accessibility
+                if (!document.body.classList.contains('reduced-motion')) {
+                    document.body.style.filter = `hue-rotate(${Math.random() * 30}deg)`;
+                }
+            }
+            
+            // Random effects for extreme mode - only if reduced motion is not enabled
+            if (moodIndex > 15 && !document.body.classList.contains('reduced-motion')) {
+                const randomEffect = Math.floor(Math.random() * 5);
+                if (randomEffect === 0) {
+                    document.body.style.transform = `rotate(${Math.random() * 2 - 1}deg)`;
+                } else if (randomEffect === 1) {
+                    document.body.style.transform = `skew(${Math.random() * 2 - 1}deg, ${Math.random() * 2 - 1}deg)`;
+                }
+                
+                // Achievement for reaching the bottom in extreme mode
+                if (moodIndex === moods.length - 1) {
+                    showAchievement("Brave Soul!");
+                }
+            } else {
+                document.body.style.transform = 'none';
+            }
+            
+            // Special achievements based on mood patterns
+            if (moodIndex === 0 && previousMood === moods.length - 1) {
+                showAchievement("Mood Whiplash!");
+            } else if (moodIndex === 9 && previousMood !== 9) {
+                showAchievement("Perfectly Balanced!");
+            }
+            
+            previousMood = moodIndex;
+        }
+        
+        // Event listeners
+        moodSlider.addEventListener('input', function(e) {
+            initAudio(); // Initialize audio on user interaction
+            if (clickSound) clickSound.play();
+            const moodIndex = moods.length - 1 - e.target.value; // Invert the slider value
+            updateMood(moodIndex);
+            // Update ARIA attributes
+            moodSlider.setAttribute('aria-valuenow', e.target.value);
+        });
+        
+        // Hide extreme mode button
+        document.getElementById('toggle-extreme').style.display = 'none';
+        
+        // Always in extreme mode
+        let extremeMode = true;
+        document.body.classList.add('extreme-mode');
+        document.querySelector('h1').innerHTML = 'EXTREME MOOD ELEVATOR 9000!!! 🔥';
+        
+        // Show achievement notification
+        function showAchievement(text) {
+            initAudio(); // Initialize audio on user interaction
+            if (achievementSound) achievementSound.play();
+            achievement.querySelector('span').textContent = text;
+            achievement.style.opacity = 1;
+            
+            setTimeout(() => {
+                achievement.style.opacity = 0;
+            }, 3000);
+        }
+        
+        // Activate hell mode (easter egg)
+        function activateHellMode() {
+            initAudio(); // Initialize audio on user interaction
+            if (hellSound) hellSound.play();
+            
+            // Apply hellmode unless reduced motion is enabled
+            if (!document.body.classList.contains('reduced-motion')) {
+                document.body.classList.add('hellmode');
+            }
+            
+            showAchievement("HELL MODE ACTIVATED!!!");
+            
+            // Make fire video look more horrifying
+            fireVideo.style.filter = 'hue-rotate(180deg) contrast(3) brightness(1.5) saturate(2)';
+            
+            if (!document.body.classList.contains('reduced-motion')) {
+                document.body.style.filter = 'contrast(1.5) saturate(1.5)';
+            }
+            
+            // Change background of container to look more demonic
+            document.getElementById('mood-container').style.backgroundColor = 'rgba(40, 0, 0, 0.9)';
+            document.getElementById('mood-container').style.boxShadow = '0 0 30px rgba(255, 0, 0, 0.8), 0 0 60px rgba(255, 0, 0, 0.5) inset';
+            document.getElementById('mood-container').style.color = '#ff9999';
+            
+            // Make title more demonic - full zalgo text for extreme effect
+            if (!document.body.classList.contains('reduced-motion')) {
+                document.querySelector('h1').innerHTML = 'D̷̛̖͚̬̊̌̕͝Ò̸̧̨̠̩̰͙͎̙͇͓͙͚͈̒͂̏͛̄̓̊̈́̓̚͠Ò̷̡̧̮̙̙̼̩̘̓͑̑͒͐̅̌͗̽̒̓̒͝M̵̗͍̠͍̟͍͙̠̯̆̈̾ͅͅS̸̺̘̳͕̟̪͍̬͖̬̾̂̊̊̽̋̀̄͘D̵̡̛̤̦͙͎̤͓̈́̓̾̆͒͊͂͐̈́̉͝͝A̵̗̗̬̮̎̽̔̿̐̾̀Y̴̨̨͙͕̼̰̞̹̥̖̜̜̓͆͆̓̇͛̔̄̎͝ ̴̦̗͈̹̪͕̥͓̖̏ͅM̸͚̥̻̘̠͕̥̳̬̪̾̊̾̈́̓͑́̃Ơ̸̟̹͇̜̿̑̑͐̾̓̈͒̕O̵̧̨̨̢̘̮͙̬͕̠̭̺͇͌̍̀̌D̸̢̛̮̮̱͓̙͂̆̀̀̐̎̇̎͋̚͝ ̸̢̘̼̗͍̞̤̫̲͓̣̱̘͒̐́̓͐͆̆͊̃̉̎̅̀̚̚M̸̘͍̭͍̟͋̽̈Ą̵̗̣̠̹̙͐̍̄͋̈͐̑̈̅̾̚͠͝ͅÇ̷̳̲͔̘̰̖̱͙̂̌́Ḩ̴̬̭̰̘̖͚̻͓̟̞̇̅̀͐̈́̓͌̍͘͠Į̵̹̘͙͕̫̘͚̠̬̘̭̫͌̍̀̾̾̇̊́̓̃͝Ń̸̨̜̖̳͓̩̣̣̈́E̵̢̧͍͙͔̘͎̯̜̬̞̤̽̈́ͅ';
+            } else {
+                document.querySelector('h1').innerHTML = 'DOOMSDAY MOOD MACHINE';
+            }
+            
+            // Add random glitch effects - with extreme intensity unless reduced motion is enabled
+            let glitchInterval;
+            
+            if (!document.body.classList.contains('reduced-motion')) {
+                window.glitchInterval = setInterval(() => {
+                    if (secretCodeActivated) {
+                        const glitchType = Math.floor(Math.random() * 5);
+                        
+                        if (glitchType === 0) {
+                            document.body.style.filter = `hue-rotate(${Math.random() * 360}deg) contrast(2) brightness(${0.5 + Math.random()})`;
+                        } else if (glitchType === 1) {
+                            emojiIndicator.style.transform = `scale(${1 + Math.random() * 3}) rotate(${Math.random() * 40 - 20}deg)`;
+                            emojiIndicator.style.filter = 'blur(2px) contrast(2)';
+                            setTimeout(() => {
+                                emojiIndicator.style.filter = 'none';
+                            }, 200);
+                        } else if (glitchType === 2) {
+                            document.body.style.filter = 'invert(1)';
+                            setTimeout(() => {
+                                document.body.style.filter = 'none';
+                            }, 100);
+                        } else if (glitchType === 3) {
+                            // Random text glitch
+                            const allTexts = document.querySelectorAll('#mood-list li');
+                            const randomText = allTexts[Math.floor(Math.random() * allTexts.length)];
+                            const originalText = randomText.innerHTML;
+                            randomText.innerHTML = originalText.split('').map(char => 
+                                Math.random() > 0.5 ? char : '̵̡̪̹̫̠̲̦͔̤͙̬̈́͌').join('');
+                            
+                            setTimeout(() => {
+                                randomText.innerHTML = originalText;
+                            }, 300);
+                        } else {
+                            // Shake the container violently
+                            document.getElementById('mood-container').style.transform = `translate(${Math.random() * 10 - 5}px, ${Math.random() * 10 - 5}px) rotate(${Math.random() * 3 - 1.5}deg)`;
+                            setTimeout(() => {
+                                document.getElementById('mood-container').style.transform = 'none';
+                            }, 200);
+                        }
+                    } else {
+                        clearInterval(window.glitchInterval);
+                    }
+                }, 500); // High frequency for extreme effect
+            }
+            
+            // Change the emoji to something more terrifying
+            emojiIndicator.innerHTML = '👹';
+            emojiIndicator.style.fontSize = '80px';
+            emojiIndicator.style.filter = 'drop-shadow(0 0 10px red)';
+            
+            // Make motivational message more demonic - with zalgo text if not in reduced motion mode
+            motivationalMessage.style.color = '#ff0000';
+            motivationalMessage.style.textShadow = '0 0 5px #ff0000';
+            
+            if (!document.body.classList.contains('reduced-motion')) {
+                motivationalMessage.innerHTML = 'T̸̛͕͔̰̪̣̳̣̪̦̓̓̌̋́͝H̴̢̤̻͎̙̠̪̠̋͑̓̀́̊͊͝Ȅ̴̯̙̮͙̤̙̅ͅ ̴̗̩̣̣̯̯̘̒͂̆̕V̵̻̞̉͊Ǫ̸̘̜̗̰͕̪͊͂̌̑̽̄͒̇̕͠͝I̶̧̠̲̻̩̻̙̖̓͗̓̑̈́D̵̡̧̛̺̱̬̱͚̟̻̬̖̣̈̀̄̃̓̂̈́͆͗ ̵̨̬̠͉͓̮̜̯̥̦̑̆̿́̐̚̚͜͝ͅH̷̨̛̦̦̝̰̜͓͍̗̯̣͉́̂̑̏̽̚͝Ư̵̡̪̥̠̲̹̳̬̭̈́̔̈̓͝N̶̦̰̩̩̮̳͙̼̻̾̃̀͑̆͝ͅG̸̲̘̫͕̻̱̳̮͎̭̣̦̉̉̌̐̾̏̔̈́͘͝E̷͎̪̜̙̭̫̫̠̣̠̟̔̉͊͋͂̌̋̉̊̂͘͜͠R̷͙̱̻̯̟̯̿̑̐͛̔̈́̀͗̿̃͗̇͛͜S̵̰͇̼̹̦͑̊̐͒̓̇̍̌͊';
+            } else {
+                motivationalMessage.innerHTML = 'THE VOID HUNGERS';
+            }
+        }
+        
+        // Particles class with improved performance
+        class Particles {
+            constructor() {
+                this.canvas = document.createElement('canvas');
+                this.canvas.id = 'particles-js';
+                document.body.appendChild(this.canvas);
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                
+                // Reduce particle count for better performance
+                this.particleCount = 15;
+                
+                // Resize canvas
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                
+                // Responsive resizing
+                window.addEventListener('resize', () => {
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
+                });
+                
+                // Create particles
+                for (let i = 0; i < this.particleCount; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        radius: Math.random() * 3 + 1,
+                        color: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.7)`,
+                        speedX: Math.random() * 2 - 1,
+                        speedY: Math.random() * 2 - 1
+                    });
+                }
+                
+                // Only animate if reduced motion is not enabled
+                if (!document.body.classList.contains('reduced-motion')) {
+                    this.animate();
+                } else {
+                    // Just draw once without animation
+                    this.draw();
+                }
+            }
+            
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                for (let i = 0; i < this.particles.length; i++) {
+                    const p = this.particles[i];
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    this.ctx.fillStyle = extremeMode ? `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)` : p.color;
+                    this.ctx.fill();
+                }
+            }
+            
+            animate() {
+                if (document.body.classList.contains('reduced-motion')) {
+                    this.draw();
+                    return;
+                }
+                
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                for (let i = 0; i < this.particles.length; i++) {
+                    const p = this.particles[i];
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    this.ctx.fillStyle = extremeMode ? `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)` : p.color;
+                    this.ctx.fill();
+                    
+                    // Move particles
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+                    
+                    // Bounce off edges
+                    if (p.x < 0 || p.x > this.canvas.width) p.speedX *= -1;
+                    if (p.y < 0 || p.y > this.canvas.height) p.speedY *= -1;
+                }
+                
+                requestAnimationFrame(this.animate.bind(this));
+            }
+        }
+        
+        // Accessibility toggle
+        accessibilityToggle.addEventListener('click', function() {
+            document.body.classList.toggle('reduced-motion');
+            
+            if (document.body.classList.contains('reduced-motion')) {
+                // Disable animations and effects
+                document.body.style.animation = 'none';
+                document.body.style.filter = 'none';
+                document.body.style.transform = 'none';
+                document.getElementById('mood-container').style.animation = 'none';
+                emojiIndicator.style.animation = 'none';
+                
+                // Stop any glitch intervals
+                clearInterval(window.glitchInterval);
+                
+                // Reset particles
+                const existingCanvas = document.getElementById('particles-js');
+                if (existingCanvas) {
+                    existingCanvas.remove();
+                }
+                
+                // Create static particles
+                new Particles();
+                
+                accessibilityToggle.textContent = 'Enable Animations';
+            } else {
+                // Re-enable animations
+                document.body.style.animation = '';
+                document.getElementById('mood-container').style.animation = '';
+                emojiIndicator.style.animation = '';
+                
+                // Reset particles with animation
+                const existingCanvas = document.getElementById('particles-js');
+                if (existingCanvas) {
+                    existingCanvas.remove();
+                }
+                new Particles();
+                
+                // Update current mood to restore effects
+                updateMood(moods.length - 1 - moodSlider.value);
+                
+                accessibilityToggle.textContent = 'Toggle Reduced Motion';
+            }
+        });
+        
+        // Initialize the app
+        window.onload = function() {
+            // Set initial mood
+            updateMood(moods.length - 1 - moodSlider.value);
+            
+            // Initialize particles
+            new Particles();
+            
+            // Show welcome achievement
+            setTimeout(() => {
+                showAchievement("Welcome to the MOOD ELEVATOR!");
+            }, 1000);
+            
+            // Add keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                // Arrow keys for slider
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    moodSlider.value = Math.min(parseInt(moodSlider.value) + 1, moodSlider.max);
+                    moodSlider.dispatchEvent(new Event('input'));
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    moodSlider.value = Math.max(parseInt(moodSlider.value) - 1, 0);
+                    moodSlider.dispatchEvent(new Event('input'));
+                }
+            });
+        };
+    </script>
+</body>
+</html>
